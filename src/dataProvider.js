@@ -4,7 +4,7 @@
 import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 
-const apiUrl = 'https://my.api.com/';
+const apiUrl = 'http://localhost:4242';
 const httpClient = fetchUtils.fetchJson;
 
 // // in src/app.js
@@ -18,18 +18,20 @@ const httpClient = fetchUtils.fetchJson;
 
 export default {
   getList: (resource, params) => {
-    const { page, perPage } = params.pagination;
-    const { field, order } = params.sort;
-    const query = {
-      sort: JSON.stringify([field, order]),
-      range: JSON.stringify([(page - 1) * perPage, page * perPage - 1]),
-      filter: JSON.stringify(params.filter),
-    };
-    const url = `${apiUrl}/${resource}?${stringify(query)}`;
+    // const { page, perPage } = params.pagination;
+    // const { field, order } = params.sort;
+    // const query = {
+    //   sort: JSON.stringify([field, order]),
+    //   range: JSON.stringify([(page - 1) * perPage, page * perPage - 1]),
+    //   filter: JSON.stringify(params.filter),
+    // };
+    // const url = `${apiUrl}/${resource}?${stringify(query)}`;
+    const url = `${apiUrl}/${resource}`;
 
     return httpClient(url).then(({ headers, json }) => ({
       data: json,
-      total: parseInt(headers.get('content-range').split('/').pop(), 10),
+      // total: parseInt(headers.get('content-range').split('/').pop(), 10),
+      total: json.length,
     }));
   },
 
@@ -82,7 +84,7 @@ export default {
   },
 
   create: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}`, {
+    httpClient(`${apiUrl}/${resource}/123`, {
       method: 'POST',
       body: JSON.stringify(params.data),
     }).then(({ json }) => ({
@@ -95,12 +97,19 @@ export default {
     }).then(({ json }) => ({ data: json })),
 
   deleteMany: (resource, params) => {
-    const query = {
-      filter: JSON.stringify({ id: params.ids}),
-    };
-    return httpClient(`${apiUrl}/${resource}?${stringify(query)}`, {
-      method: 'DELETE',
-      body: JSON.stringify(params.data),
-    }).then(({ json }) => ({ data: json }));
+    const deleteRequests = params.ids.map(userId => {
+      return httpClient(`${apiUrl}/${resource}/${userId}`, {
+        method: 'DELETE',
+      });
+    })
+    return Promise.allSettled(deleteRequests)
+      .then(res => ({ data: {} }));
+    // const query = {
+    //   filter: JSON.stringify({ id: params.ids}),
+    // };
+    // return httpClient(`${apiUrl}/${resource}?${stringify(query)}`, {
+    //   method: 'DELETE',
+    //   body: JSON.stringify(params.data),
+    // }).then(({ json }) => ({ data: json }));
   }
 };
