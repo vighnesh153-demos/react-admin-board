@@ -7,31 +7,28 @@ import { stringify } from 'query-string';
 const apiUrl = 'http://localhost:4242';
 const httpClient = fetchUtils.fetchJson;
 
-// // in src/app.js
-// import dataProvider from './dataProvider';
-//
-// const App = () => (
-//     <Admin dataProvider={dataProvider}>
-//         // ...
-//     </Admin>
-// );
 
 export default {
   getList: (resource, params) => {
-    // const { page, perPage } = params.pagination;
-    // const { field, order } = params.sort;
-    // const query = {
-    //   sort: JSON.stringify([field, order]),
-    //   range: JSON.stringify([(page - 1) * perPage, page * perPage - 1]),
-    //   filter: JSON.stringify(params.filter),
-    // };
-    // const url = `${apiUrl}/${resource}?${stringify(query)}`;
-    const url = `${apiUrl}/${resource}`;
+    console.log('getList', params);
 
-    return httpClient(url).then(({ headers, json }) => ({
-      data: json,
-      // total: parseInt(headers.get('content-range').split('/').pop(), 10),
-      total: json.length,
+    const filters = {};
+    if (params.filter.id) {
+      filters.ids = [params.filter.id]
+    }
+    if (params.filter.q) {
+      filters.query = params.filter.q;
+    }
+
+    const url = `${apiUrl}/${resource}?${stringify({
+      filter: JSON.stringify(filters),
+      pagination: JSON.stringify(params.pagination),
+      sort: JSON.stringify(params.sort),
+    })}`;
+
+    return httpClient(url).then(({ json }) => ({
+      data: json.users,
+      total: json.total,
     }));
   },
 
@@ -42,13 +39,16 @@ export default {
 
   getMany: (resource, params) => {
     const query = {
-      filter: JSON.stringify({ id: params.ids }),
+      filter: JSON.stringify({
+        ids: params.ids || [],
+      }),
     };
     const url = `${apiUrl}/${resource}?${stringify(query)}`;
     return httpClient(url).then(({ json }) => ({ data: json }));
   },
 
   getManyReference: (resource, params) => {
+    console.log('getManyReference', params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     const query = {
@@ -104,12 +104,5 @@ export default {
     })
     return Promise.allSettled(deleteRequests)
       .then(res => ({ data: {} }));
-    // const query = {
-    //   filter: JSON.stringify({ id: params.ids}),
-    // };
-    // return httpClient(`${apiUrl}/${resource}?${stringify(query)}`, {
-    //   method: 'DELETE',
-    //   body: JSON.stringify(params.data),
-    // }).then(({ json }) => ({ data: json }));
   }
 };

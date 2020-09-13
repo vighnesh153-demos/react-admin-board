@@ -8,16 +8,59 @@ app.use(express.json());
 
 
 const UsersService = require("./usersService");
-const users = new UsersService();
+const usersService = new UsersService();
 
 // Get all users
 app.get('/users', (req, res) => {
-  res.json(users.getAll());
+  let users = usersService.getAll();
+
+  // filters
+  if (req.query.filter) {
+    const filters = JSON.parse(req.query.filter);
+    if (filters.ids && filters.ids.length > 0) {
+      users = users.filter(user => filters.ids.includes(user.id));
+    }
+    if (filters.query) {
+      const query = filters.query.toString().toLowerCase();
+      users = users.filter(user => {
+        return user.id.toString().toLowerCase().includes(query) ||
+               user.name.toLowerCase().includes(query);
+      });
+    }
+  }
+
+  // sort
+  if (req.query.sort) {
+    const sort = JSON.parse(req.query.sort);
+    if (sort.order === 'ASC') {
+      users.sort((user1, user2) => {
+        return user1[sort.field] <= user2[sort.field] ? -1 : 1;
+      });
+    } else {
+      users.sort((user1, user2) => {
+        return user1[sort.field] >= user2[sort.field] ? -1 : 1;
+      });
+    }
+  }
+
+  // pagination
+  const total = users.length;
+  if (req.query.pagination) {
+    const pagination = JSON.parse(req.query.pagination);
+    const startFrom = (pagination.page - 1) * pagination.perPage;
+    const endAt = startFrom + pagination.perPage
+    users = users.slice(startFrom, endAt);
+  }
+
+  res.json({
+    users,
+    total
+  });
 });
 
 // Get single user
 app.get('/users/:id', (req, res) => {
-  const user = users.get(req.params.id);
+  const user = usersService.get(req.params.id);
   if (user === null) {
     return res.sendStatus(404);
   }
@@ -28,16 +71,17 @@ app.get('/users/:id', (req, res) => {
 // from create_multiple_users middleware)
 app.post('/users/:id', (req, res) => {
   const {name, password} = req.body;
-  const newUser = users.new(name, password);
+  const newUser = usersService.new(name, password);
   res.status(201).json(newUser);
 });
 
 // Create multiple users
 app.post('/users', (req, res) => {
-  const newUsers = []
+  const newUsers = [];
   for (const requestUser of req.body) {
     const {name, password} = requestUser;
-    const newUser = users.new(name, password);
+    const newUser = usersService.new(name, password);
+    console.log(newUser)
     newUsers.push(newUser);
   }
   res.status(201).send(newUsers);
@@ -46,14 +90,14 @@ app.post('/users', (req, res) => {
 // Update single user
 app.put('/users/:id', (req, res) => {
   const {name, password, id} = req.body;
-  users.update(id, name, password);
-  const updatedUser = users.get(id);
+  usersService.update(id, name, password);
+  const updatedUser = usersService.get(id);
   res.status(200).json(updatedUser);
 });
 
 app.delete('/users/:id', (req, res) => {
   const userId = req.params.id;
-  users.delete(userId);
+  usersService.delete(userId);
   res.status(200).json({ id: userId});
 });
 

@@ -3,20 +3,30 @@ import {
   List,
   Datagrid,
   TextField,
-  EmailField, Create, SimpleForm, TextInput, ReferenceInput, SelectInput, Edit
+  Create,
+  SimpleForm,
+  TextInput,
+  ReferenceInput,
+  SelectInput,
+  Edit,
+  Filter
 } from 'react-admin';
-import MyUrlField from "./MyUrlField";
+
+const UserFilter = (props) => (
+  <Filter {...props}>
+    <TextInput label="Search" source="q" alwaysOn />
+    <ReferenceInput label="User" source="id" reference="users" allowEmpty>
+      <SelectInput optionText="name" />
+    </ReferenceInput>
+  </Filter>
+);
 
 export const UserList = props => (
-  <List {...props}>
+  <List filters={<UserFilter />} {...props}>
     <Datagrid rowClick="edit">
       <TextField source="id" />
       <TextField source="name" />
       <TextField source="password" />
-      {/*<EmailField source="email" />*/}
-      {/*<TextField source="phone" />*/}
-      {/*<MyUrlField source="website" />*/}
-      {/*<TextField source="company.name" />*/}
     </Datagrid>
   </List>
 );
@@ -31,9 +41,11 @@ export const UserCreate = props => (
 );
 
 const UserTitle = ({ user }) => {
-  return <span>User {
-    user ? `"${user.name}"` : ''
-  }</span>;
+  return (
+    <span>
+      User {user ? `"${user.name}"` : ''}
+    </span>
+  );
 };
 
 export const UserEdit = props => (
