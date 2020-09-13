@@ -10,8 +10,6 @@ const httpClient = fetchUtils.fetchJson;
 
 export default {
   getList: (resource, params) => {
-    console.log('getList', params);
-
     const filters = {};
     if (params.filter.id) {
       filters.ids = [params.filter.id]

@@ -81,7 +81,6 @@ app.post('/users', (req, res) => {
   for (const requestUser of req.body) {
     const {name, password} = requestUser;
     const newUser = usersService.new(name, password);
-    console.log(newUser)
     newUsers.push(newUser);
   }
   res.status(201).send(newUsers);
