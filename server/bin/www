@@ -1,0 +1,14 @@
+const app = require('../app');
+
+const UsersService = require("../services/usersService");
+
+app.listen(4242, () => {
+  const usersService = new UsersService();
+  app.set('usersService', usersService);
+
+  console.log(`
+  ************************************
+  * Server is listening on port 4242 *
+  ************************************
+  `);
+});

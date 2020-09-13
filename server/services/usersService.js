@@ -63,6 +63,39 @@ class UsersService {
     this.users.splice(userIndex, 1);
     this.dbSync();
   }
+
+  filter = (filters, users) => {
+    if (filters.ids && filters.ids.length > 0) {
+      users = users.filter(user => filters.ids.includes(user.id));
+    }
+    if (filters.query) {
+      const query = filters.query.toString().toLowerCase();
+      users = users.filter(user => {
+        return user.id.toString().toLowerCase().includes(query) ||
+          user.name.toLowerCase().includes(query);
+      });
+    }
+    return users;
+  }
+
+  sort = (sort, users) => {
+    if (sort.order === 'ASC') {
+      users.sort((user1, user2) => {
+        return user1[sort.field] <= user2[sort.field] ? -1 : 1;
+      });
+    } else {
+      users.sort((user1, user2) => {
+        return user1[sort.field] >= user2[sort.field] ? -1 : 1;
+      });
+    }
+    return users;
+  }
+
+  pagination = (pagination, users) => {
+    const startFrom = (pagination.page - 1) * pagination.perPage;
+    const endAt = startFrom + pagination.perPage
+    return users.slice(startFrom, endAt);
+  }
 }
 
 module.exports = UsersService;

@@ -82,11 +82,11 @@ export default {
   },
 
   create: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}/123`, {
+    httpClient(`${apiUrl}/${resource}`, {
       method: 'POST',
-      body: JSON.stringify(params.data),
+      body: JSON.stringify([params.data]),
     }).then(({ json }) => ({
-      data: { ...params.data, id: json.id },
+      data: { ...params.data, id: json[0].id },
     })),
 
   delete: (resource, params) =>
