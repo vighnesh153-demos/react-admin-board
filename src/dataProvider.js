@@ -5,6 +5,7 @@ import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 
 const apiUrl = 'http://localhost:4242';
+// const apiUrl = 'https://us-central1-rv-test-153.cloudfunctions.net/app';
 const httpClient = fetchUtils.fetchJson;
 
 
